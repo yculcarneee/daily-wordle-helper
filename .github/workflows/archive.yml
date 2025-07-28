@@ -1,0 +1,20 @@
+name: Archive Daily Wordle Helper
+
+on:
+  schedule:
+    - cron: '30 1 * * *'  # Runs daily at 1:30 UTC
+  workflow_dispatch:      # Optional: allows manual triggering
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Archive Page via SavePageNow API
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://web.archive.org/save/https://yculcarneee.github.io/daily-wordle-helper/")
+          if [ "$RESPONSE" -eq 200 ]; then
+            echo "Successfully archived."
+          else
+            echo "Failed to archive. Status code: $RESPONSE"
+            exit 1
+          fi
