@@ -1,4 +1,5 @@
 import os
+import random
 from google import genai
 from google.genai import types
 import json
@@ -73,6 +74,13 @@ Tone: Be helpful, slightly cryptic for the initial hints, and encouraging."""
 
     return response.text
 
+
+def scramble_text(text):
+    if not text:
+        return ""
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    return ''.join(random.choice(alphabet) if ch != ' ' else ' ' for ch in text)
+
 if __name__ == "__main__":
     wordle_data = fetch_wordle_data(datetime.now().strftime('%Y-%m-%d'))
     solution = wordle_data['solution']
@@ -80,6 +88,7 @@ if __name__ == "__main__":
     hints = generate(solution)
 
     parsed_hints = json.loads(hints)
+    scrambled_hints = [scramble_text(h) for h in parsed_hints['hints']]
 
     html_template = f"""<!DOCTYPE html>
     <html lang="en">
@@ -214,6 +223,13 @@ if __name__ == "__main__":
                 "{parsed_hints['hints'][3]}",
                 "{parsed_hints['hints'][4]}"
             ];
+            const scrambledHints = [
+                "{scrambled_hints[0]}",
+                "{scrambled_hints[1]}",
+                "{scrambled_hints[2]}",
+                "{scrambled_hints[3]}",
+                "{scrambled_hints[4]}"
+            ];
             const todayWordle = "{solution}";
 
             let currentHintIndex = 0;
@@ -221,52 +237,23 @@ if __name__ == "__main__":
             const revealButton = document.getElementById('reveal-button');
             const hintContainer = document.getElementById('hint-container');
 
-            function scrambleText(text) {{
-                if (!text) return "";
-                let scrambled = '';
-                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-                for (let i = 0; i < text.length; i++) {{
-                    const char = text[i];
-                    if (char === ' ') {{
-                        scrambled += ' ';
-                    }} else {{
-                        const randomChar = alphabet[Math.floor(Math.random() * alphabet.length)];
-                        scrambled += randomChar;
-                    }}
-                }}
-                return scrambled;
-            }}
-
-            function createHintBox(index, isWordle = false) {{
+            function createHintBox(index) {{
                 const newHintBox = document.createElement('div');
                 newHintBox.id = `hint-box-${{index}}`;
                 newHintBox.classList.add('hint-box', 'new-hint');
 
-                let textToScramble = "";
-                if (isWordle) {{
-                    textToScramble = todayWordle;
-                }} else if (index < hints.length) {{
-                    textToScramble = hints[index];
-                }}
-
-                newHintBox.innerHTML = `<span class="scrambled-text">${{scrambleText(textToScramble)}}</span>`;
+                newHintBox.innerHTML = `<span class="scrambled-text">${{scrambledHints[index]}}</span>`;
                 hintContainer.appendChild(newHintBox);
 
                 void newHintBox.offsetWidth;
 
                 return newHintBox;
             }}
-
-            function revealText(hintBoxElement, actualText, isWordleReveal = false) {{
+            function revealText(hintBoxElement, actualText) {{
                 const textSpan = hintBoxElement.querySelector('.scrambled-text');
                 if (textSpan) {{
                     textSpan.textContent = actualText;
-                    if (isWordleReveal) {{
-                        textSpan.style.color = '#6ca965';
-                    }} else {{
-                        textSpan.style.color = '#c8b653';
-                    }}
+                    textSpan.style.color = "#c8b653";
                 }}
             }}
 
@@ -290,14 +277,18 @@ if __name__ == "__main__":
                     }} else {{
                         revealButton.textContent = 'Reveal solution';
                     }}
-                }} else {{
-                    const wordleBox = createHintBox(currentHintIndex, true);
-                    revealText(wordleBox, todayWordle, true);
-                    wordleBox.classList.add('revealed', 'font-bold', 'text-2xl');
-                    wordleBox.style.color = '#6ca965';
-                    wordleBox.classList.remove('new-hint');
-                    revealButton.style.display = 'none';
-                }}
+                    }} else {{
+                        const wordleBox = document.createElement('div');
+                        wordleBox.classList.add('hint-box', 'new-hint', 'font-bold', 'text-2xl');
+                        // reveal the actual solution without using a scrambled placeholder
+                        wordleBox.textContent = todayWordle;
+                        wordleBox.style.color = "#6ca965";
+                        hintContainer.appendChild(wordleBox);
+                        void wordleBox.offsetWidth;
+                        wordleBox.classList.add('revealed');
+                        wordleBox.classList.remove('new-hint');
+                        revealButton.style.display = "none";
+                    }}
             }});
 
             function getOrdinal(n) {{

@@ -115,7 +115,7 @@
     <body>
         <div class="container">
             <h1 class="text-4xl font-bold text-gray-100 mb-2">Daily Wordle Helper</h1>
-            <p class="text-gray-400 text-lg mb-8">Wordle #1525</p>
+            <p class="text-gray-400 text-lg mb-8">Wordle #1526</p>
 
             <div id="hint-container">
             </div>
@@ -125,65 +125,43 @@
 
         <script>
             const hints = [
-                "It describes a condition or an appearance.",
-                "It often describes something that looks a bit worn or messy.",
-                "You might use this word to describe an old, well-loved blanket or a doll's messy hair.",
-                "It starts with the letter 'R'.",
-                "It ends with the letter 'Y'."
+                "It describes when different things come together.",
+                "Think about when people or groups join to work as one.",
+                "It's what happens when states or countries become one big team.",
+                "It starts with the letter 'U'.",
+                "It ends with the letter 'N'."
             ];
-            const todayWordle = "ratty";
+            const scrambledHints = [
+                "II ERLTBXGDG QHZT KGRNLVWVV DONELT XRVX WDMVUSZFQ",
+                "XNJVH FNELE WHUV GYTPLR VB XDGHNO NOYK AB OLOI JA RHPD",
+                "SLLS WXPO ILLGFJY AWKD BTCCRI KK VDRFPROGW KXKEUW QNT VMJ JLXCS",
+                "JD EMLISU TGIC FLK KOFMMO MLFP",
+                "ND JUDR DSTD FRB MSMSIT GDNZ"
+            ];
+            const todayWordle = "union";
 
             let currentHintIndex = 0;
 
             const revealButton = document.getElementById('reveal-button');
             const hintContainer = document.getElementById('hint-container');
 
-            function scrambleText(text) {
-                if (!text) return "";
-                let scrambled = '';
-                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-                for (let i = 0; i < text.length; i++) {
-                    const char = text[i];
-                    if (char === ' ') {
-                        scrambled += ' ';
-                    } else {
-                        const randomChar = alphabet[Math.floor(Math.random() * alphabet.length)];
-                        scrambled += randomChar;
-                    }
-                }
-                return scrambled;
-            }
-
-            function createHintBox(index, isWordle = false) {
+            function createHintBox(index) {
                 const newHintBox = document.createElement('div');
                 newHintBox.id = `hint-box-${index}`;
                 newHintBox.classList.add('hint-box', 'new-hint');
 
-                let textToScramble = "";
-                if (isWordle) {
-                    textToScramble = todayWordle;
-                } else if (index < hints.length) {
-                    textToScramble = hints[index];
-                }
-
-                newHintBox.innerHTML = `<span class="scrambled-text">${scrambleText(textToScramble)}</span>`;
+                newHintBox.innerHTML = `<span class="scrambled-text">${scrambledHints[index]}</span>`;
                 hintContainer.appendChild(newHintBox);
 
                 void newHintBox.offsetWidth;
 
                 return newHintBox;
             }
-
-            function revealText(hintBoxElement, actualText, isWordleReveal = false) {
+            function revealText(hintBoxElement, actualText) {
                 const textSpan = hintBoxElement.querySelector('.scrambled-text');
                 if (textSpan) {
                     textSpan.textContent = actualText;
-                    if (isWordleReveal) {
-                        textSpan.style.color = '#6ca965';
-                    } else {
-                        textSpan.style.color = '#c8b653';
-                    }
+                    textSpan.style.color = "#c8b653";
                 }
             }
 
@@ -207,14 +185,18 @@
                     } else {
                         revealButton.textContent = 'Reveal solution';
                     }
-                } else {
-                    const wordleBox = createHintBox(currentHintIndex, true);
-                    revealText(wordleBox, todayWordle, true);
-                    wordleBox.classList.add('revealed', 'font-bold', 'text-2xl');
-                    wordleBox.style.color = '#6ca965';
-                    wordleBox.classList.remove('new-hint');
-                    revealButton.style.display = 'none';
-                }
+                    } else {
+                        const wordleBox = document.createElement('div');
+                        wordleBox.classList.add('hint-box', 'new-hint', 'font-bold', 'text-2xl');
+                        // reveal the actual solution without using a scrambled placeholder
+                        wordleBox.textContent = todayWordle;
+                        wordleBox.style.color = "#6ca965";
+                        hintContainer.appendChild(wordleBox);
+                        void wordleBox.offsetWidth;
+                        wordleBox.classList.add('revealed');
+                        wordleBox.classList.remove('new-hint');
+                        revealButton.style.display = "none";
+                    }
             });
 
             function getOrdinal(n) {
